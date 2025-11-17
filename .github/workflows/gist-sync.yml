@@ -2,9 +2,9 @@ name: Gist Sync
 on:
   push:
     branches:
-      - 'master'
+      - "master"
     paths:
-      - 'rules/*.txt'
+      - "rules/*.txt"
 
 jobs:
   sync-gists:
@@ -13,9 +13,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Push changes to Gist
-        uses: pentatonicfunk/action-gist-repo-sync@v1
-        with:
-          gist_token: ${{ secrets.GIST_TOKEN }}
-          gist_id: ${{ secrets.GIST_ID }}
-          source_path: rules
+      - name: Sync via gh api
+        env:
+          GH_TOKEN: ${{ secrets.GIST_TOKEN }}
+          GIST_ID: ${{ secrets.GIST_ID }}
+        run: |
+          files=$(jq -n '{files:{}}')
+          for f in rules/*.txt; do
+            content=$(jq -Rs '.' "$f")
+            files=$(jq --arg fn "$(basename "$f")" --argjson data "{\"content\":$content}" '.files[$fn]=$data | {files:.files}' <<<"$files")
+          done
+          echo "$files" | gh api -X PATCH /gists/$GIST_ID -H "Accept: application/vnd.github+json" -f files=-
