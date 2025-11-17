@@ -2,3 +2,4 @@
 DOMAIN-SUFFIX,netflix.com
 DOMAIN-SUFFIX,disneyplus.com
 DOMAIN-SUFFIX,spotify.com
+DOMAIN-SUFFIX,hulu.com

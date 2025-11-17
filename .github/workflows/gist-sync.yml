@@ -9,32 +9,91 @@ on:
 jobs:
   sync-gist:
     runs-on: ubuntu-latest
+    env:
+      GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+      GIST_ID: ${{ secrets.GIST_ID }}
     steps:
       - uses: actions/checkout@v5
 
-      - name: Authenticate gh explicitly
-        env:
-          RAW_TOKEN: ${{ secrets.GIST_TOKEN }}
-        run: |
-          unset GH_TOKEN
-          printf '%s' "$RAW_TOKEN" | gh auth login --with-token --hostname github.com
+      - name: Detect changed rule files
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            adblock:
+              - 'rules/adblock.txt'
+            ai:
+              - 'rules/ai.txt'
+            direct:
+              - 'rules/direct.txt'
+            hk:
+              - 'rules/hk.txt'
+            microsoft:
+              - 'rules/microsoft.txt'
+            proxy:
+              - 'rules/proxy.txt'
+            streaming:
+              - 'rules/streaming.txt'
 
-      - name: Verify gh auth
-        env:
-          GH_TOKEN: ${{ secrets.GIST_TOKEN }}   # gist scope only
-        run: gh auth status
+      - name: Update adblock gist file
+        if: steps.changes.outputs.adblock == 'true'
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ env.GIST_TOKEN }}
+          gist_id: ${{ env.GIST_ID }}
+          file_path: rules/adblock.txt
+          gist_file_name: adblock.txt
 
-      - name: Update gist files
-        env:
-          GH_TOKEN: ${{ secrets.GIST_TOKEN }}
-          GIST_ID: ${{ secrets.GIST_ID }}
-        run: |
-          set -euo pipefail
-          for file in rules/*.txt; do
-            remote="$(basename "$file")"
-            if gh gist view "$GIST_ID" --files | grep -q "^$remote$"; then
-              gh gist edit "$GIST_ID" --filename "$remote" <"$file"
-            else
-              gh gist edit "$GIST_ID" --add "$file" --filename "$remote"
-            fi
-          done
+      - name: Update ai gist file
+        if: steps.changes.outputs.ai == 'true'
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ env.GIST_TOKEN }}
+          gist_id: ${{ env.GIST_ID }}
+          file_path: rules/ai.txt
+          gist_file_name: ai.txt
+
+      - name: Update direct gist file
+        if: steps.changes.outputs.direct == 'true'
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ env.GIST_TOKEN }}
+          gist_id: ${{ env.GIST_ID }}
+          file_path: rules/direct.txt
+          gist_file_name: direct.txt
+
+      - name: Update hk gist file
+        if: steps.changes.outputs.hk == 'true'
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ env.GIST_TOKEN }}
+          gist_id: ${{ env.GIST_ID }}
+          file_path: rules/hk.txt
+          gist_file_name: hk.txt
+
+      - name: Update microsoft gist file
+        if: steps.changes.outputs.microsoft == 'true'
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ env.GIST_TOKEN }}
+          gist_id: ${{ env.GIST_ID }}
+          file_path: rules/microsoft.txt
+          gist_file_name: microsoft.txt
+
+      - name: Update proxy gist file
+        if: steps.changes.outputs.proxy == 'true'
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ env.GIST_TOKEN }}
+          gist_id: ${{ env.GIST_ID }}
+          file_path: rules/proxy.txt
+          gist_file_name: proxy.txt
+
+      - name: Update streaming gist file
+        if: steps.changes.outputs.streaming == 'true'
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ env.GIST_TOKEN }}
+          gist_id: ${{ env.GIST_ID }}
+          file_path: rules/streaming.txt
+          gist_file_name: streaming.txt

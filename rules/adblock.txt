@@ -1,3 +1,2 @@
 # Advertising and telemetry blockers
 DOMAIN-SUFFIX,doubleclick.net
-DOMAIN-SUFFIX,ads.example.com
