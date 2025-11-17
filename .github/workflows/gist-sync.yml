@@ -18,7 +18,11 @@ jobs:
         run: |
           unset GH_TOKEN
           printf '%s' "$RAW_TOKEN" | gh auth login --with-token --hostname github.com
-          gh auth status
+
+      - name: Verify gh auth
+        env:
+          GH_TOKEN: ${{ secrets.GIST_TOKEN }}   # gist scope only
+        run: gh auth status
 
       - name: Update gist files
         env:
