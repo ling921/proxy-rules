@@ -12,11 +12,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Authenticate gh
+      - name: Authenticate gh explicitly
         env:
-          GH_TOKEN: ${{ secrets.GIST_TOKEN }}  # must have gist scope
+          RAW_TOKEN: ${{ secrets.GIST_TOKEN }}
         run: |
-          printf '%s' "$GH_TOKEN" | gh auth login --with-token --hostname github.com
+          unset GH_TOKEN
+          printf '%s' "$RAW_TOKEN" | gh auth login --with-token --hostname github.com
           gh auth status
 
       - name: Update gist files

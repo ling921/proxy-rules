@@ -1,3 +1,4 @@
 # AI platforms and APIs
 DOMAIN-SUFFIX,openai.com
 DOMAIN-SUFFIX,anthropic.com
+DOMAIN-SUFFIX,copilot.microsoft.com
