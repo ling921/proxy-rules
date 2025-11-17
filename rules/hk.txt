@@ -1,2 +1,2 @@
 # Hong Kong specific services
-DOMAIN,ani.gamer.com.tw
+DOMAIN-SUFFIX,gamer.com.tw
