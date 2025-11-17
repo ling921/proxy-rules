@@ -1,3 +1,2 @@
 # Hong Kong specific services
-DOMAIN-SUFFIX,example.hk
-DOMAIN-SUFFIX,news.hk
+DOMAIN,ani.gamer.com.tw
