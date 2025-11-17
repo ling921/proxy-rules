@@ -1,0 +1,3 @@
+# Hong Kong specific services
+DOMAIN-SUFFIX,example.hk
+DOMAIN-SUFFIX,news.hk

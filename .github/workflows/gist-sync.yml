@@ -1,0 +1,21 @@
+name: Gist Sync
+on:
+  push:
+    branches:
+      - 'master'
+    paths:
+      - 'rules/*.txt'
+
+jobs:
+  sync-gists:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Push changes to Gist
+        uses: pentatonicfunk/action-gist-repo-sync@v1
+        with:
+          gist_token: ${{ secrets.GIST_TOKEN }}
+          gist_id: ${{ secrets.GIST_ID }}
+          source_path: rules

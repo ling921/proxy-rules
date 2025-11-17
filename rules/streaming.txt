@@ -1,0 +1,4 @@
+# Streaming platforms
+DOMAIN-SUFFIX,netflix.com
+DOMAIN-SUFFIX,disneyplus.com
+DOMAIN-SUFFIX,spotify.com

@@ -1,0 +1,4 @@
+# Direct access destinations
+# Add CIDR, DOMAIN, or DOMAIN-SUFFIX rules that must bypass the proxy
+DOMAIN-SUFFIX,example.lan
+IP-CIDR,10.0.0.0/8
