@@ -1,2 +1,2 @@
-# Adblock 及遥测屏蔽规则
+# 屏蔽规则，主要为广告及遥测
 DOMAIN-SUFFIX,doubleclick.net

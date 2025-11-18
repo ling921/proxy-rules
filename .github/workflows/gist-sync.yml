@@ -20,8 +20,8 @@ jobs:
         uses: dorny/paths-filter@v3
         with:
           filters: |
-            adblock:
-              - added|modified: 'rules/adblock.txt'
+            block:
+              - added|modified: 'rules/block.txt'
             ai:
               - added|modified: 'rules/ai.txt'
             direct:
@@ -41,8 +41,8 @@ jobs:
         with:
           token: ${{ env.GIST_TOKEN }}
           gist_id: ${{ env.GIST_ID }}
-          file_path: rules/adblock.txt
-          gist_file_name: adblock.txt
+          file_path: rules/block.txt
+          gist_file_name: block.txt
 
       - name: Update ai gist file
         if: steps.changes.outputs.ai == 'true'
