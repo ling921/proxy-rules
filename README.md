@@ -9,22 +9,15 @@
 
 ## 规则清单
 
-| 规则文件 | 描述 |
-| --- | --- |
-| [direct.txt](https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/direct.txt) | 强制直连的域名或网段，适合本地服务与内网系统 | 
-| [hk.txt](https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/hk.txt) | 香港站点与业务，便于定向路由 |
-| [ai.txt](https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/ai.txt) | 常见 AI 平台与 API 端点，方便统一策略 |
-| [microsoft.txt](https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/microsoft.txt) | Microsoft 以及 Office 生态相关域名 |
-| [streaming.txt](https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/streaming.txt) | 串流影音平台，便于切换专属节点 |
-| [proxy.txt](https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/proxy.txt) | 必须走代理的服务，避免被墙或限速 |
-| [adblock.txt](https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/adblock.txt) | 广告/遥测域名黑名单，可挂到 `REJECT` |
-
-## 使用方式
-
-1. 直接编辑目标 `.txt`，保持注释记录来源或筛选条件。
-2. 推送前用脚本或 Clash 的 `rule-set convert` 检查格式与重复项。
-3. CI 中可把 `rules/*.txt` 复制到指定路径并推送到 Gist 或私有仓库。
-4. 若需要临时分支/实验，只需新增文件并在上表补充描述。
+| 规则文件                                                                                                       | 描述                                         |
+| -------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| [direct.txt](https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/direct.txt)       | 强制直连的域名或网段，适合本地服务与内网系统 |
+| [hk.txt](https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/hk.txt)               | 香港站点与业务，便于定向路由                 |
+| [ai.txt](https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/ai.txt)               | 常见 AI 平台与 API 端点，方便统一策略        |
+| [microsoft.txt](https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/microsoft.txt) | Microsoft 以及 Office 生态相关域名           |
+| [streaming.txt](https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/streaming.txt) | 串流影音平台，便于切换专属节点               |
+| [proxy.txt](https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/proxy.txt)         | 必须走代理的服务，避免被墙或限速             |
+| [block.txt](https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/block.txt)     | 屏蔽域名黑名单，可挂到 `REJECT`         |
 
 ## 语法速查
 
@@ -36,15 +29,15 @@
 
 ### 常用规则类型
 
-| 类型 | 示例 | 说明 |
-| --- | --- | --- |
-| `DOMAIN` | `DOMAIN,api.example.com,Proxy` | 精确匹配单个域名。
-| `DOMAIN-SUFFIX` | `DOMAIN-SUFFIX,example.com,Proxy` | 匹配整个后缀及其子域名。
-| `DOMAIN-KEYWORD` | `DOMAIN-KEYWORD,keyword,Proxy` | 域名包含关键字即可命中，适合模糊匹配。
-| `IP-CIDR` | `IP-CIDR,192.168.0.0/16,DIRECT` | IPv4 网段匹配，可追加 `,no-resolve`。
-| `IP-CIDR6` | `IP-CIDR6,240c::/32,Proxy` | IPv6 网段匹配。
-| `GEOIP` | `GEOIP,CN,DIRECT` | 基于 GeoIP 数据库的国家/地区规则。
-| `FINAL` | `FINAL,Proxy` | 所有规则未命中时的兜底策略。
+| 类型             | 示例                              | 说明                                 |
+| ---------------- | --------------------------------- | ------------------------------------ |
+| `DOMAIN`         | `DOMAIN,api.example.com,Proxy`    | 精确匹配单个域名                     |
+| `DOMAIN-SUFFIX`  | `DOMAIN-SUFFIX,example.com,Proxy` | 匹配整个后缀及其子域名               |
+| `DOMAIN-KEYWORD` | `DOMAIN-KEYWORD,keyword,Proxy`    | 域名包含关键字即可命中，适合模糊匹配 |
+| `IP-CIDR`        | `IP-CIDR,192.168.0.0/16,DIRECT`   | IPv4 网段匹配，可追加 `,no-resolve`  |
+| `IP-CIDR6`       | `IP-CIDR6,240c::/32,Proxy`        | IPv6 网段匹配                        |
+| `GEOIP`          | `GEOIP,CN,DIRECT`                 | 基于 GeoIP 数据库的国家/地区规则     |
+| `FINAL`          | `FINAL,Proxy`                     | 所有规则未命中时的兜底策略           |
 
 > 规则提供器（Rule Provider）下可省略策略位，由策略组在导入后统一指定。本仓库的 `.txt` 仅保留「匹配类型 + 匹配值」，方便复用。
 
@@ -61,15 +54,63 @@ DOMAIN,api.special.example
 
 ```yaml
 rule-providers:
-	proxy-sites:
-		type: http
-		behavior: classical
-		path: rules/proxy.txt
-		url: https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/proxy.txt
-		interval: 43200
+  direct-sets:
+    type: http
+    behavior: classical
+    path: rules/direct.txt
+    url: https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/direct.txt
+    interval: 43200
+
+  hk-sets:
+    type: http
+    behavior: classical
+    path: rules/hk.txt
+    url: https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/hk.txt
+    interval: 43200
+
+  ai-sets:
+    type: http
+    behavior: classical
+    path: rules/ai.txt
+    url: https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/ai.txt
+    interval: 43200
+
+  microsoft-sets:
+    type: http
+    behavior: classical
+    path: rules/microsoft.txt
+    url: https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/microsoft.txt
+    interval: 43200
+
+  streaming-sets:
+    type: http
+    behavior: classical
+    path: rules/streaming.txt
+    url: https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/streaming.txt
+    interval: 43200
+
+  proxy-sets:
+    type: http
+    behavior: classical
+    path: rules/proxy.txt
+    url: https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/proxy.txt
+    interval: 43200
+
+  block-sets:
+    type: http
+    behavior: classical
+    path: rules/block.txt
+    url: https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/block.txt
+    interval: 43200
 
 rules:
-	- RULE-SET,proxy-sites,Proxy
+  - RULE-SET,direct-sets,Direct
+  - RULE-SET,hk-sets,HongKong
+  - RULE-SET,ai-sets,AI
+  - RULE-SET,microsoft-sets,Proxy
+  - RULE-SET,streaming-sets,Streaming
+  - RULE-SET,proxy-sets,Proxy
+  - RULE-SET,block-sets,REJECT
 ```
 
 ### 校验建议
