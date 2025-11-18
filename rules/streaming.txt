@@ -1,4 +1,4 @@
-# Streaming platforms
+# 流媒体服务规则
 DOMAIN-SUFFIX,netflix.com
 DOMAIN-SUFFIX,disneyplus.com
 DOMAIN-SUFFIX,spotify.com

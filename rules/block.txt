@@ -1,2 +1,2 @@
-# Advertising and telemetry blockers
+# Adblock 及遥测屏蔽规则
 DOMAIN-SUFFIX,doubleclick.net

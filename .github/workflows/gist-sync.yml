@@ -21,19 +21,19 @@ jobs:
         with:
           filters: |
             adblock:
-              - 'rules/adblock.txt'
+              - added|modified: 'rules/adblock.txt'
             ai:
-              - 'rules/ai.txt'
+              - added|modified: 'rules/ai.txt'
             direct:
-              - 'rules/direct.txt'
+              - added|modified: 'rules/direct.txt'
             hk:
-              - 'rules/hk.txt'
+              - added|modified: 'rules/hk.txt'
             microsoft:
-              - 'rules/microsoft.txt'
+              - added|modified: 'rules/microsoft.txt'
             proxy:
-              - 'rules/proxy.txt'
+              - added|modified: 'rules/proxy.txt'
             streaming:
-              - 'rules/streaming.txt'
+              - added|modified: 'rules/streaming.txt'
 
       - name: Update adblock gist file
         if: steps.changes.outputs.adblock == 'true'

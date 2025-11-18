@@ -1,2 +1,2 @@
-# Hong Kong specific services
+# 香港服务专用规则
 DOMAIN-SUFFIX,gamer.com.tw

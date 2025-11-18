@@ -1,3 +1,2 @@
-# Always proxy destinations
-# Use this list for services that break without tunnel routing
+# 代理规则
 DOMAIN-SUFFIX,v2ex.com
