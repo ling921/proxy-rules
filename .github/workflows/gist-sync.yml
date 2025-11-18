@@ -20,10 +20,10 @@ jobs:
         uses: dorny/paths-filter@v3
         with:
           filters: |
-            block:
-              - added|modified: 'rules/block.txt'
             ai:
               - added|modified: 'rules/ai.txt'
+            block:
+              - added|modified: 'rules/block.txt'
             direct:
               - added|modified: 'rules/direct.txt'
             hk:
@@ -35,15 +35,6 @@ jobs:
             streaming:
               - added|modified: 'rules/streaming.txt'
 
-      - name: Update adblock gist file
-        if: steps.changes.outputs.adblock == 'true'
-        uses: exuanbo/actions-deploy-gist@v1
-        with:
-          token: ${{ env.GIST_TOKEN }}
-          gist_id: ${{ env.GIST_ID }}
-          file_path: rules/block.txt
-          gist_file_name: block.txt
-
       - name: Update ai gist file
         if: steps.changes.outputs.ai == 'true'
         uses: exuanbo/actions-deploy-gist@v1
@@ -52,6 +43,15 @@ jobs:
           gist_id: ${{ env.GIST_ID }}
           file_path: rules/ai.txt
           gist_file_name: ai.txt
+
+      - name: Update block gist file
+        if: steps.changes.outputs.block == 'true'
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ env.GIST_TOKEN }}
+          gist_id: ${{ env.GIST_ID }}
+          file_path: rules/block.txt
+          gist_file_name: block.txt
 
       - name: Update direct gist file
         if: steps.changes.outputs.direct == 'true'
