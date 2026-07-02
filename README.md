@@ -4,43 +4,32 @@
 
 ## 使用方法
 
-在 Clash Verge 的 **订阅 → 全局扩展脚本** 中使用以下脚本，可自动拉取远程规则并与本地配置合并：
+### 1. 在 Clash Verge 的 **订阅 → 全局覆写配置** 中粘贴 `clash-config.yml` 的内容即可。
+
+
+### 2. 在 Clash Verge 的 **订阅 → 全局扩展脚本** 中使用以下脚本将代理节点应用于所有的代理组：
 
 ```js
-const CONFIG_URL = 'https://gist.githubusercontent.com/ling921/a00ba6773a02bfc961151c59117ca2ac/raw/clash-config.yml';
+function main(config, profileName) {
 
-// 辅助函数：获取并解析 YAML
-async function fetchYaml(url) {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: 无法获取配置`);
+  const nodeNames = (config.proxies || [])
+    .map(p => p.name)
+    .filter(n => !/(流量|剩余|套餐)/.test(n));
+
+  config['proxy-groups'].forEach(group => {
+    if (Array.isArray(group.proxies)) {
+      if (group.proxies.length === 0) {
+        group.proxies = nodeNames;
+      }
+      else {
+        group.proxies = [...group.proxies, ...nodeNames]
+      }
     }
-    const text = await response.text();
-    return yaml.parse(text); // Verge 内置的 YAML 解析器
+  });
+
+  return config;
 }
 
-async function main(config, profileName) {
-    try {
-        const remoteConfig = await fetchYaml(CONFIG_URL);
-        const { proxies: _, ...remoteWithoutProxies } = remoteConfig;
-        Object.assign(config, remoteWithoutProxies); // rule-providers 和 rules 都会被覆盖
-
-        // 填充或合并 proxy-groups 中的节点列表
-        const nodeNames = (config.proxies || []).map(p => p.name);
-        if (config['proxy-groups']) {
-            config['proxy-groups'].forEach(group => {
-                if (!Array.isArray(group.proxies)) {
-                  group.proxies = nodeNames;
-                } else {
-                  group.proxies = [...group.proxies, ...nodeNames];
-                }
-            });
-        }
-    } catch (error) {
-        console.error('加载远程配置失败:', error);
-    }
-    return config;
-}
 ```
 
 ## 配置说明
