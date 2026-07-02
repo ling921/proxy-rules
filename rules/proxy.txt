@@ -1,2 +1,0 @@
-# 代理规则
-DOMAIN-SUFFIX,v2ex.com

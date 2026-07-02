@@ -1,6 +1,0 @@
-# AI 相关域名，可能需要走特定节点以获得更好体验
-DOMAIN-SUFFIX,openai.com
-DOMAIN-SUFFIX,chatgpt.com
-DOMAIN-SUFFIX,anthropic.com
-DOMAIN-SUFFIX,copilot.microsoft.com
-DOMAIN-SUFFIX,gemini.google.com

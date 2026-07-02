@@ -1,2 +1,0 @@
-# 屏蔽规则，主要包含广告、遥测
-DOMAIN-SUFFIX,doubleclick.net
