@@ -190,5 +190,5 @@ rules:
   - 'RULE-SET,proxy,🚀 默认节点'
 
   # 兜底规则
-  - GEOIP,CN,DIRECT
-  - MATCH,PROXY
+  - 'GEOIP,CN,DIRECT'
+  - 'MATCH,🚀 默认节点'
