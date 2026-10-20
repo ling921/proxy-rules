@@ -1,3 +1,7 @@
+# ========== 选择记录 ==========
+profile:
+  store-selected: true # 重启后恢复策略组和手动节点的选择
+
 # ========== DNS 设置 ==========
 dns:
   enable: true
@@ -18,6 +22,7 @@ proxy-groups:
     type: select
     proxies:
       - "AUTO"
+      - "MANUAL"
       - DIRECT
     icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/adjust.svg
 
@@ -26,6 +31,7 @@ proxy-groups:
     type: select
     proxies:
       - "AUTO"
+      - "MANUAL"
     icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/google.svg
 
   # AI 服务
@@ -33,14 +39,22 @@ proxy-groups:
     type: select
     proxies:
       - "AUTO"
+      - "MANUAL"
     icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/chatgpt.svg
+
+  # 手动选择：只包含实际节点，不跟随 AUTO 切换
+  - name: "MANUAL"
+    type: select
+    proxies: [] # 留空，由脚本动态填充
+    icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/adjust.svg
 
   # 自动测速
   - name: "AUTO"
     type: url-test
     proxies: [] # 留空，由脚本动态填充
-    url: "http://www.gstatic.com/generate_204"
+    url: "https://www.gstatic.com/generate_204"
     interval: 300
+    tolerance: 50 # 节点切换容差（ms），减少小幅延迟波动造成的切换
     icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/balance.svg
 
 # ========== 第三方规则集定义 ==========
@@ -94,20 +108,6 @@ rule-providers:
     path: ./ruleset/private.yaml
     interval: 86400
 
-  gfw:
-    type: http
-    behavior: domain
-    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/gfw.txt"
-    path: ./ruleset/gfw.yaml
-    interval: 86400
-
-  tld-not-cn:
-    type: http
-    behavior: domain
-    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/tld-not-cn.txt"
-    path: ./ruleset/tld-not-cn.yaml
-    interval: 86400
-
   telegramcidr:
     type: http
     behavior: ipcidr
@@ -138,7 +138,85 @@ rule-providers:
 
 # ========== 分流规则 ==========
 rules:
-  # 国外代理
+  # 局域网和管理面板优先直连；IP 规则不主动触发 DNS 解析
+  - RULE-SET,private,DIRECT
+  - RULE-SET,lancidr,DIRECT,no-resolve
+  - GEOIP,LAN,DIRECT,no-resolve
+  - DOMAIN,clash.razord.top,DIRECT
+  - DOMAIN,yacd.haishan.me,DIRECT
+
+  # AI 专用规则必须放在通用 Google 规则之前（规则自上而下首次命中）
+  # OpenAI / ChatGPT / Sora：后缀规则同时覆盖主域名和资源子域名
+  - PROCESS-NAME,com.openai.chatgpt,AI
+  - DOMAIN-SUFFIX,openai.com,AI
+  - DOMAIN-SUFFIX,chatgpt.com,AI
+  - DOMAIN-SUFFIX,oaistatic.com,AI
+  - DOMAIN-SUFFIX,oaiusercontent.com,AI
+  - DOMAIN-SUFFIX,sora.com,AI
+  - DOMAIN-SUFFIX,ai.com,AI
+  - DOMAIN-SUFFIX,chat.com,AI
+
+  # Anthropic / Claude
+  - PROCESS-NAME,com.example.claudeclient,AI
+  - DOMAIN-SUFFIX,anthropic.com,AI
+  - DOMAIN-SUFFIX,claude.ai,AI
+  - DOMAIN-SUFFIX,claudeusercontent.com,AI
+
+  # Gemini / AI Studio / NotebookLM / Vertex AI
+  - PROCESS-NAME,com.google.android.apps.bard,AI
+  - DOMAIN-KEYWORD,google-gemini,AI
+  - DOMAIN-SUFFIX,deepmind.com,AI
+  - DOMAIN-SUFFIX,deepmind.google,AI
+  - DOMAIN-SUFFIX,ai.google.dev,AI
+  - DOMAIN-SUFFIX,generativeai.google,AI
+  - DOMAIN-SUFFIX,makersuite.google.com,AI
+  - DOMAIN-SUFFIX,aistudio.google.com,AI
+  - DOMAIN-SUFFIX,bard.google.com,AI
+  - DOMAIN-SUFFIX,gemini.google,AI
+  - DOMAIN-SUFFIX,gemini.google.com,AI
+  - DOMAIN-SUFFIX,notebooklm.google,AI
+  - DOMAIN-SUFFIX,notebooklm.google.com,AI
+  - DOMAIN-SUFFIX,jules.google,AI
+  - DOMAIN-SUFFIX,jules.google.com,AI
+  - DOMAIN,geller-pa.googleapis.com,AI
+  - DOMAIN,generativelanguage.googleapis.com,AI
+  - DOMAIN,proactivebackend-pa.googleapis.com,AI
+  - DOMAIN,alkalicore-pa.clients6.google.com,AI
+  - DOMAIN,alkalimakersuite-pa.clients6.google.com,AI
+  - DOMAIN,webchannel-alkalimakersuite-pa.clients6.google.com,AI
+  - DOMAIN,aiplatform.googleapis.com,AI
+  - DOMAIN,vertexai.googleapis.com,AI
+  - DOMAIN,studio.apis.google.com,AI
+  - DOMAIN,content-aiplatform.googleapis.com,AI
+  - DOMAIN,gemini-android.clients.google.com,AI
+  - DOMAIN,gemini-desktop.clients.google.com,AI
+  - DOMAIN,alkali-pa.googleapis.com,AI
+  - DOMAIN,aiplatform-prediction.googleapis.com,AI
+  - DOMAIN,notebooklm.clients6.google.com,AI
+
+  # 已配置的第三方端点仅精确匹配，避免扩大到整个共享云服务/CDN
+  - DOMAIN,app.launchdarkly.com,AI
+  - DOMAIN,segment.io,AI
+  - DOMAIN,auth0.com,AI
+  - DOMAIN,auth0usercontent.com,AI
+  - DOMAIN,servd-anthropic-website.b-cdn.net,AI
+  - DOMAIN,openai.com.cdn.cloudflare.net,AI
+  - DOMAIN,openaiapi-site.azureedge.net,AI
+  - DOMAIN,openaicom-api-bdcpf8c6d2e9atf6.z01.azurefd.net,AI
+  - DOMAIN,openaicomproductionae4b.blob.core.windows.net,AI
+  - DOMAIN,production-openaicom-storage.azureedge.net,AI
+  - DOMAIN,o33249.ingest.sentry.io,AI
+  - DOMAIN,openaicom.imgix.net,AI
+  - DOMAIN,browser-intake-datadoghq.com,AI
+  - DOMAIN,sentry.io,AI
+  - DOMAIN,intercomcdn.com,AI
+  - DOMAIN,intercom.io,AI
+  - DOMAIN,identrust.com,AI
+  - DOMAIN,chatgpt.livekit.cloud,AI
+  - DOMAIN,host.livekit.cloud,AI
+  - DOMAIN,turn.livekit.cloud,AI
+
+  # Google 通用服务和其它国外代理
   - DOMAIN-SUFFIX,googledrive.com,Google
   - DOMAIN-SUFFIX,googleusercontent.com,Google
   - DOMAIN-KEYWORD,appspot,Google
@@ -151,114 +229,18 @@ rules:
   - DOMAIN-SUFFIX,github.com,PROXY
   - DOMAIN-SUFFIX,netflix.com,PROXY
 
-  # AI 相关
-  - DOMAIN-SUFFIX,openai.com,AI
-  - DOMAIN-SUFFIX,chatgpt.com,AI
-  - PROCESS-NAME,com.google.android.apps.bard,AI
-  - DOMAIN-KEYWORD,google-gemini,AI
-  - DOMAIN,deepmind.com,AI
-  - DOMAIN,deepmind.google,AI
-  - DOMAIN,geller-pa.googleapis.com,AI
-  - DOMAIN,generativelanguage.googleapis.com,AI
-  - DOMAIN,proactivebackend-pa.googleapis.com,AI
-  - DOMAIN,ai.google.dev,AI
-  - DOMAIN,alkalicore-pa.clients6.google.com,AI
-  - DOMAIN,alkalimakersuite-pa.clients6.google.com,AI
-  - DOMAIN,webchannel-alkalimakersuite-pa.clients6.google.com,AI
-  - DOMAIN,generativeai.google,AI
-  - DOMAIN,makersuite.google.com,AI
-  - DOMAIN,aistudio.google.com,AI
-  - DOMAIN,bard.google.com,AI
-  - DOMAIN,gemini.google,AI
-  - DOMAIN,gemini.google.com,AI
-  - DOMAIN,notebooklm.google,AI
-  - DOMAIN,notebooklm.google.com,AI
-  - DOMAIN,jules.google,AI
-  - DOMAIN,jules.google.com,AI
-  - DOMAIN,aiplatform.googleapis.com,AI
-  - DOMAIN,vertexai.googleapis.com,AI
-  - DOMAIN,cloudfunctions.net,AI
-  - DOMAIN,studio.apis.google.com,AI
-  - DOMAIN,content-aiplatform.googleapis.com,AI
-  - DOMAIN,run.app,AI
-  - DOMAIN,googleapis.com,AI
-  - DOMAIN,googlevideo.com,AI
-  - DOMAIN,googleusercontent.com,AI
-  - DOMAIN,gemini-android.clients.google.com,AI
-  - DOMAIN,gemini-desktop.clients.google.com,AI
-  - DOMAIN,alkali-pa.googleapis.com,AI
-  - DOMAIN,aiplatform-prediction.googleapis.com,AI
-  - DOMAIN,notebooklm.clients6.google.com,AI
-  - PROCESS-NAME,com.example.claudeclient,AI
-  - DOMAIN-KEYWORD,anthropic,AI
-  - DOMAIN,claude.ai,AI
-  - DOMAIN,chat.claude.ai,AI
-  - DOMAIN,api.anthropic.com,AI
-  - DOMAIN,auth.anthropic.com,AI
-  - DOMAIN,events.anthropic.com,AI
-  - DOMAIN,cdn.anthropic.com,AI
-  - DOMAIN,claudeusercontent.com,AI
-  - DOMAIN,console.anthropic.com,AI
-  - DOMAIN,docs.anthropic.com,AI
-  - DOMAIN,statsig.anthropic.com,AI
-  - DOMAIN,www.anthropic.com,AI
-  - DOMAIN,app.launchdarkly.com,AI
-  - DOMAIN,segment.io,AI
-  - DOMAIN,a-api.anthropic.com,AI
-  - DOMAIN,a-cdn.anthropic.com,AI
-  - DOMAIN,auth0.com,AI
-  - DOMAIN,auth0usercontent.com,AI
-  - DOMAIN,servd-anthropic-website.b-cdn.net,AI
-  - PROCESS-NAME,com.openai.chatgpt,AI
-  - DOMAIN-KEYWORD,openai,AI
-  - DOMAIN,chatgpt.com,AI
-  - DOMAIN,ai.com,AI
-  - DOMAIN,chat.com,AI
-  - DOMAIN,oaistatic.com,AI
-  - DOMAIN,oaiusercontent.com,AI
-  - DOMAIN,files.oaiusercontent.com,AI
-  - DOMAIN,openai.com,AI
-  - DOMAIN,beta.openai.com,AI
-  - DOMAIN,platform.openai.com,AI
-  - DOMAIN,auth0.openai.com,AI
-  - DOMAIN,auth1.openai.com,AI
-  - DOMAIN,auth2.openai.com,AI
-  - DOMAIN,api.openai.com,AI
-  - DOMAIN,sora.com,AI
-  - DOMAIN,openai.com.cdn.cloudflare.net,AI
-  - DOMAIN,openaiapi-site.azureedge.net,AI
-  - DOMAIN,openaicom-api-bdcpf8c6d2e9atf6.z01.azurefd.net,AI
-  - DOMAIN,openaicomproductionae4b.blob.core.windows.net,AI
-  - DOMAIN,production-openaicom-storage.azureedge.net,AI
-  - DOMAIN,azureedge.net,AI
-  - DOMAIN,azurefd.net,AI
-  - DOMAIN,o33249.ingest.sentry.io,AI
-  - DOMAIN,openaicom.imgix.net,AI
-  - DOMAIN,browser-intake-datadoghq.com,AI
-  - DOMAIN,sentry.io,AI
-  - DOMAIN,intercomcdn.com,AI
-  - DOMAIN,intercom.io,AI
-  - DOMAIN,identrust.com,AI
-  - DOMAIN,chatgpt.livekit.cloud,AI
-  - DOMAIN,host.livekit.cloud,AI
-  - DOMAIN,turn.livekit.cloud,AI
-
   # 规则集
   - RULE-SET,applications,DIRECT
-  - DOMAIN,clash.razord.top,DIRECT
-  - DOMAIN,yacd.haishan.me,DIRECT
-  - RULE-SET,private,DIRECT
   - RULE-SET,reject,REJECT
   - RULE-SET,icloud,DIRECT
   - RULE-SET,apple,DIRECT
   - RULE-SET,google,Google
   - RULE-SET,proxy,PROXY
   - RULE-SET,direct,DIRECT
-  - RULE-SET,lancidr,DIRECT
+  - RULE-SET,telegramcidr,PROXY,no-resolve
+  # 保留国内 IP 的 DNS 解析兜底，避免未命中域名集的国内站点误走代理
   - RULE-SET,cncidr,DIRECT
-  - RULE-SET,telegramcidr,PROXY
 
   # 兜底规则
-  - GEOIP,LAN,DIRECT
   - GEOIP,CN,DIRECT
   - MATCH,PROXY
