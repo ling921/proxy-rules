@@ -6,6 +6,23 @@ profile:
 dns:
   enable: true
   ipv6: false
+  enhanced-mode: fake-ip # 开启 Fake-IP，消除首包解析延迟，秒开网页
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - "*.lan"
+    - "*.localdomain"
+    - "*.example"
+    - "*.invalid"
+    - "*.localhost"
+    - "*.test"
+    - "*.local"
+    - "*.home.arpa"
+    - "time.*.com"
+    - "ntp.*.com"
+    - "*.ntp.org.cn"
+    - "+.pool.ntp.org"
+    - "stun.*"
+    - "*.market.xiaomi.com" # 米家与智能家居直连
   nameserver:
     - https://223.5.5.5/dns-query
     - https://1.1.1.1/dns-query
@@ -22,6 +39,11 @@ proxy-groups:
     type: select
     proxies:
       - "AUTO"
+      - "HK-AUTO"
+      - "SG-AUTO"
+      - "JP-AUTO"
+      - "US-AUTO"
+      - "TW-AUTO"
       - "MANUAL"
       - DIRECT
     icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/adjust.svg
@@ -31,27 +53,94 @@ proxy-groups:
     type: select
     proxies:
       - "AUTO"
+      - "HK-AUTO"
+      - "SG-AUTO"
+      - "JP-AUTO"
+      - "US-AUTO"
+      - "TW-AUTO"
       - "MANUAL"
     icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/google.svg
 
-  # AI 服务
+  # AI 服务（默认推荐首选 SG/US，避开香港地区封禁限制）
   - name: "AI"
     type: select
     proxies:
+      - "SG-AUTO"
+      - "US-AUTO"
+      - "JP-AUTO"
+      - "TW-AUTO"
       - "AUTO"
       - "MANUAL"
     icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/chatgpt.svg
 
-  # 手动选择：只包含实际节点，不跟随 AUTO 切换
+  # Telegram 专属服务（独立长连接，避免主节点测速漂移导致频繁重连）
+  - name: "Telegram"
+    type: select
+    proxies:
+      - "SG-AUTO"
+      - "HK-AUTO"
+      - "JP-AUTO"
+      - "US-AUTO"
+      - "AUTO"
+      - "PROXY"
+      - "MANUAL"
+    icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/telegram.svg
+
+  # 🇭🇰 香港自动测速
+  - name: "HK-AUTO"
+    type: url-test
+    proxies: [] # 脚本自动填充香港节点
+    url: "https://www.gstatic.com/generate_204"
+    interval: 300
+    tolerance: 50
+    icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/hk.svg
+
+  # 🇸🇬 新加坡自动测速
+  - name: "SG-AUTO"
+    type: url-test
+    proxies: [] # 脚本自动填充新加坡节点
+    url: "https://www.gstatic.com/generate_204"
+    interval: 300
+    tolerance: 50
+    icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/sg.svg
+
+  # 🇯🇵 日本自动测速
+  - name: "JP-AUTO"
+    type: url-test
+    proxies: [] # 脚本自动填充日本节点
+    url: "https://www.gstatic.com/generate_204"
+    interval: 300
+    tolerance: 50
+    icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/jp.svg
+
+  # 🇺🇸 美国自动测速
+  - name: "US-AUTO"
+    type: url-test
+    proxies: [] # 脚本自动填充美国节点
+    url: "https://www.gstatic.com/generate_204"
+    interval: 300
+    tolerance: 50
+    icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/us.svg
+
+  # 🇹🇼 台湾自动测速
+  - name: "TW-AUTO"
+    type: url-test
+    proxies: [] # 脚本自动填充台湾节点
+    url: "https://www.gstatic.com/generate_204"
+    interval: 300
+    tolerance: 50
+    icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/tw.svg
+
+  # 全局手动选择：包含所有实际节点，不跟随自动测速切换
   - name: "MANUAL"
     type: select
-    proxies: [] # 留空，由脚本动态填充
+    proxies: [] # 留空，由脚本动态填充全部节点
     icon: https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/adjust.svg
 
-  # 自动测速
+  # 全局自动测速：包含所有实际节点
   - name: "AUTO"
     type: url-test
-    proxies: [] # 留空，由脚本动态填充
+    proxies: [] # 留空，由脚本动态填充全部节点
     url: "https://www.gstatic.com/generate_204"
     interval: 300
     tolerance: 50 # 节点切换容差（ms），减少小幅延迟波动造成的切换
@@ -216,6 +305,14 @@ rules:
   - DOMAIN,host.livekit.cloud,AI
   - DOMAIN,turn.livekit.cloud,AI
 
+  # Telegram 专属长连接分流
+  - DOMAIN-SUFFIX,t.me,Telegram
+  - DOMAIN-SUFFIX,tdesktop.com,Telegram
+  - DOMAIN-SUFFIX,telegram.me,Telegram
+  - DOMAIN-SUFFIX,telegram.org,Telegram
+  - DOMAIN-SUFFIX,telesco.pe,Telegram
+  - RULE-SET,telegramcidr,Telegram,no-resolve
+
   # Google 通用服务和其它国外代理
   - DOMAIN-SUFFIX,googledrive.com,Google
   - DOMAIN-SUFFIX,googleusercontent.com,Google
@@ -237,7 +334,6 @@ rules:
   - RULE-SET,google,Google
   - RULE-SET,proxy,PROXY
   - RULE-SET,direct,DIRECT
-  - RULE-SET,telegramcidr,PROXY,no-resolve
   # 保留国内 IP 的 DNS 解析兜底，避免未命中域名集的国内站点误走代理
   - RULE-SET,cncidr,DIRECT
 

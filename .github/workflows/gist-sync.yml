@@ -1,33 +1,121 @@
-name: Gist Sync
+name: Build & Gist Sync
+
 on:
   push:
     branches:
       - "master"
     paths:
       - "clash-config.yml"
+      - "build.js"
+      - "package.json"
+      - ".github/workflows/gist-sync.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
-  sync-gist:
+  build-and-sync:
     runs-on: ubuntu-latest
     env:
       GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
       GIST_ID: ${{ secrets.GIST_ID }}
     steps:
-      - uses: actions/checkout@v5
-
-      - name: Detect changed rule files
-        id: changes
-        uses: dorny/paths-filter@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          filters: |
-            clash-config:
-              - added|modified: 'clash-config.yml'
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update clash config gist file
-        if: steps.changes.outputs.clash-config == 'true'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --no-audit
+
+      - name: Build target scripts to dist/
+        run: npm run build
+
+      - name: Commit & push generated scripts back to repo
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add dist/
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(build): 自动同步编译脚本产物至 dist/ [skip ci]"
+            git push
+          fi
+
+      - name: Deploy clash-config.yml to Gist
         uses: exuanbo/actions-deploy-gist@v1
         with:
           token: ${{ env.GIST_TOKEN }}
           gist_id: ${{ env.GIST_ID }}
           file_path: clash-config.yml
           gist_file_name: clash-config.yml
+
+      - name: Deploy flclash-script.js to Gist
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ env.GIST_TOKEN }}
+          gist_id: ${{ env.GIST_ID }}
+          file_path: dist/flclash-script.js
+          gist_file_name: flclash-script.js
+
+      - name: Deploy clash-verge-all-in-one.js to Gist
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ env.GIST_TOKEN }}
+          gist_id: ${{ env.GIST_ID }}
+          file_path: dist/clash-verge-all-in-one.js
+          gist_file_name: clash-verge-all-in-one.js
+
+      - name: Deploy clash-verge-filter.js to Gist
+        uses: exuanbo/actions-deploy-gist@v1
+        with:
+          token: ${{ env.GIST_TOKEN }}
+          gist_id: ${{ env.GIST_ID }}
+          file_path: dist/clash-verge-filter.js
+          gist_file_name: clash-verge-filter.js
+
+      - name: Generate Gist Links & Summary
+        run: |
+          echo "=== 正在获取并生成最新 Gist 链接 ==="
+          GIST_OWNER="ling921"
+          GIST_HTML_URL="https://gist.github.com/${{ env.GIST_ID }}"
+
+          if [ -n "${{ env.GIST_TOKEN }}" ] && [ -n "${{ env.GIST_ID }}" ]; then
+            API_RES=$(GH_TOKEN="${{ env.GIST_TOKEN }}" gh api "gists/${{ env.GIST_ID }}" 2>/dev/null || true)
+            if [ -n "$API_RES" ]; then
+              OWNER_FROM_API=$(echo "$API_RES" | jq -r '.owner.login // empty')
+              [ -n "$OWNER_FROM_API" ] && GIST_OWNER="$OWNER_FROM_API"
+              GIST_HTML_URL=$(echo "$API_RES" | jq -r '.html_url // empty')
+            fi
+          fi
+
+          GIST_RAW_BASE="https://gist.githubusercontent.com/${GIST_OWNER}/${{ env.GIST_ID }}/raw"
+          CDN_RAW_BASE="https://fastly.jsdelivr.net/gh/${{ github.repository }}@master/dist"
+
+          cat <<EOF >> $GITHUB_STEP_SUMMARY
+          ## 🚀 自动编译并部署成功！
+
+          ### 📱 1. FlClash 移动端专属脚本 (URL 导入)
+          - 国内 CDN: \`${CDN_RAW_BASE}/flclash-script.js\`
+          - Gist 直链: \`${GIST_RAW_BASE}/flclash-script.js\`
+
+          ### 💻 2. Clash Verge Rev 全量单脚本 (All-in-One，免配 YAML 且支持本地覆写)
+          - 国内 CDN: \`${CDN_RAW_BASE}/clash-verge-all-in-one.js\`
+          - Gist 直链: \`${GIST_RAW_BASE}/clash-verge-all-in-one.js\`
+
+          ### 🧩 3. Clash Verge Rev 搭配脚本 (与 YAML 覆写组合使用)
+          - 国内 CDN: \`${CDN_RAW_BASE}/clash-verge-filter.js\`
+          - Gist 直链: \`${GIST_RAW_BASE}/clash-verge-filter.js\`
+
+          ### 📄 4. Clash YAML 覆写配置 (与上方搭配脚本组合使用)
+          - 国内 CDN: \`https://fastly.jsdelivr.net/gh/${{ github.repository }}@master/clash-config.yml\`
+          - Gist 直链: \`${GIST_RAW_BASE}/clash-config.yml\`
+
+          ### 🔗 5. Gist 主页
+          - [查看 GitHub Gist](${GIST_HTML_URL})
+          EOF

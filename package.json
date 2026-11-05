@@ -1,0 +1,12 @@
+{
+  "name": "proxy-rules",
+  "version": "1.0.0",
+  "description": "Clash & FlClash rules and script generator",
+  "main": "build.js",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "yaml": "^2.7.0"
+  }
+}
