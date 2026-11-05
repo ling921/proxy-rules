@@ -2,11 +2,10 @@
  * ====================================================================
  * 💻 Clash Verge Rev 全量单脚本 (All-in-One)
  * 警告：此文件由 build.js 自动编译生成，请直接编辑 clash-config.yml！
- * 生成时间: 2026-11-05T03:33:28.074Z
+ * 生成时间: 2026-11-05T06:34:28.437Z
  * 说明：
  *   1. 本脚本内置所有配置与规则。如果全局覆写配置（YAML）留空，直接全量生效；
- *   2. 如果你在本地【全局覆写配置（YAML）】中微调了参数或追加了临时规则，
- *      脚本会智能保留你的本地微调并置顶，免去频繁提交 Git 的繁琐！
+ *   2. 自动清除订阅自带的混乱策略组与规则，确保分流严格走 PROXY / AI / Google / Telegram！
  * ====================================================================
  */
 
@@ -420,18 +419,14 @@ function main(config, profileName) {
       "MATCH,PROXY"
     ];
 
-    // 1. Profile 智能合并（保留本地用户在 YAML 中的自定义微调）
+    // 1. Profile 配置
     config.profile = Object.assign({}, baseProfile, config.profile || {});
 
-    // 2. DNS 智能合并（本地在 YAML 中对 DNS 的微调优先）
-    const localDns = (config.dns && typeof config.dns === 'object') ? config.dns : {};
-    config.dns = Object.assign({}, baseDns, localDns);
-    if (Array.isArray(localDns['fake-ip-filter']) && localDns['fake-ip-filter'].length > 0) {
-      config.dns['fake-ip-filter'] = [...new Set([...(baseDns['fake-ip-filter'] || []), ...localDns['fake-ip-filter']])];
-    }
+    // 2. DNS 配置
+    config.dns = Object.assign({}, baseDns, config.dns || {});
 
-    // 3. 动态装配基础策略组并保留本地自定义策略组
-    const builtGroups = baseProxyGroups.map((group) => {
+    // 3. 严格构建纯净的 11 大策略组（彻底清除订阅自带的“雪山·Link”、“自动选择”等混乱分组）
+    config['proxy-groups'] = baseProxyGroups.map((group) => {
       const g = Object.assign({}, group);
       const originalProxies = Array.isArray(g.proxies) ? g.proxies : [];
 
@@ -448,33 +443,11 @@ function main(config, profileName) {
       return g;
     });
 
-    // 若本地 YAML 覆写中存在额外的自定义策略组，一并优雅合并
-    if (Array.isArray(config['proxy-groups'])) {
-      const localCustomGroups = config['proxy-groups'].filter(
-        (lg) => lg && lg.name && !builtGroups.some((bg) => bg.name === lg.name)
-      );
-      localCustomGroups.forEach((cg) => {
-        const g = Object.assign({}, cg);
-        if (Array.isArray(g.proxies)) {
-          g.proxies = [...new Set([...g.proxies, ...nodeNames])];
-        }
-        builtGroups.push(g);
-      });
-    }
-    config['proxy-groups'] = builtGroups;
+    // 4. 注入第三方规则集
+    config['rule-providers'] = Object.assign({}, baseRuleProviders);
 
-    // 4. 规则集智能合并（内置 Loyalsoldier + 本地用户额外规则集）
-    config['rule-providers'] = Object.assign({}, baseRuleProviders, config['rule-providers'] || {});
-
-    // 5. 分流规则智能合并（本地用户在 YAML 中新增的专属规则置顶优先命中）
-    const localRules = Array.isArray(config.rules) ? config.rules : [];
-    const customRules = localRules.filter((r) => {
-      if (typeof r !== 'string') return false;
-      if (r.startsWith('MATCH,') || r.startsWith('GEOIP,CN,')) return false;
-      return !baseRules.includes(r);
-    });
-
-    config.rules = [...new Set([...customRules, ...baseRules])];
+    // 5. 严格替换为项目高精分流规则（彻底阻断原订阅中指向机场自带分组的规则劫持）
+    config.rules = [...baseRules];
 
     return config;
   } catch (e) {
