@@ -11,7 +11,7 @@ const FLCLASH_OUTPUT_PATH = path.join(DIST_DIR, 'flclash-script.js');
 const CLASH_VERGE_ALL_IN_ONE_PATH = path.join(DIST_DIR, 'clash-verge-all-in-one.js');
 const CLASH_VERGE_FILTER_PATH = path.join(DIST_DIR, 'clash-verge-filter.js');
 
-console.log('🔄 开始从 clash-config.yml 自动构建精简高效的脚本体系 (输出至 dist/)...');
+console.log('🔄 开始从 clash-config.yml 自动构建脚本体系 (输出至 dist/)...');
 
 if (!fs.existsSync(DIST_DIR)) {
   fs.mkdirSync(DIST_DIR, { recursive: true });
@@ -32,18 +32,27 @@ const baseProxyGroups = baseConfig['proxy-groups'] || [];
 const baseRules = baseConfig.rules || [];
 
 console.log(`📋 源配置解析成功:
-  - 精简后策略组数量: ${baseProxyGroups.length} (已移除冗余的地区MANUAL)
+  - 策略组数量: ${baseProxyGroups.length}
   - 规则集数量: ${Object.keys(baseRuleProviders).length}
   - 分流规则数: ${baseRules.length}`);
 
-// 公共的节点过滤与地区分类代码段
+// 辅助函数：格式化 JSON 并自动补齐基础缩进（保证在生成的代码中垂直精准对齐）
+function formatJSON(obj, baseIndent = 4) {
+  const jsonStr = JSON.stringify(obj, null, 2);
+  const pad = ' '.repeat(baseIndent);
+  return jsonStr
+    .split('\n')
+    .map((line, i) => (i === 0 ? line : (line ? pad + line : '')))
+    .join('\n');
+}
+
+// 统一的节点过滤与地区分类代码
 function getSharedFilterCode() {
-  return `
-    const rawProxies = Array.isArray(config.proxies) ? config.proxies : [];
+  return `    const rawProxies = Array.isArray(config.proxies) ? config.proxies : [];
 
     // 提示性/垃圾节点的通用正则过滤规则
     const JUNK_NODE_REGEX = /(?:流量|剩余|已用|套餐|到期|重置|时间|天数|过期|账号|账户|额度|续费|充值|余额|建议|请[勿可求准及时]?|务必|更新|订阅|通知|公告|提示|注意|规则|说明|维护|故障|重启|重连|超时|网络|售后|群|官网|网站|发布|频道|客服|工单|联系|防失联|教程|下载|客户端|导航|地址|备用|永久|官方|退订|反馈|返利|推广|邀请|折扣|优惠|福利|活动|赞助|广告)/i;
-    const JUNK_ENG_REGEX = /^(?:info|traffic|expire|notice|alert|update|message|warn|website|channel|group|support|tips?|announcement)\b/i;
+    const JUNK_ENG_REGEX = /^(?:info|traffic|expire|notice|alert|update|message|warn|website|channel|group|support|tips?|announcement)\\b/i;
     const INVALID_SERVER_REGEX = /^(?:127\\.0\\.0\\.1|0\\.0\\.0\\.0|localhost)$/i;
 
     const isAvailableNode = (p) => {
@@ -112,23 +121,21 @@ function getSharedFilterCode() {
           break;
         }
       }
-    });
-  `;
+    });`;
 }
 
-// 1. 生成全量单脚本的核心逻辑（支持本地 YAML 微调优雅合并）
+// 1. 生成全量单脚本的核心逻辑（完美缩进排版）
 function generateAllInOneCoreLogic() {
-  return `
-    if (!config || typeof config !== 'object') return config;
+  return `    if (!config || typeof config !== 'object') return config;
 
 ${getSharedFilterCode()}
 
     // 基础静态配置模板（自动从 clash-config.yml 编译同步）
-    const baseProfile = ${JSON.stringify(baseProfile, null, 2)};
-    const baseDns = ${JSON.stringify(baseDns, null, 2)};
-    const baseRuleProviders = ${JSON.stringify(baseRuleProviders, null, 2)};
-    const baseProxyGroups = ${JSON.stringify(baseProxyGroups, null, 2)};
-    const baseRules = ${JSON.stringify(baseRules, null, 2)};
+    const baseProfile = ${formatJSON(baseProfile, 4)};
+    const baseDns = ${formatJSON(baseDns, 4)};
+    const baseRuleProviders = ${formatJSON(baseRuleProviders, 4)};
+    const baseProxyGroups = ${formatJSON(baseProxyGroups, 4)};
+    const baseRules = ${formatJSON(baseRules, 4)};
 
     // 1. Profile 智能合并（保留本地用户在 YAML 中的自定义微调）
     config.profile = Object.assign({}, baseProfile, config.profile || {});
@@ -186,14 +193,12 @@ ${getSharedFilterCode()}
 
     config.rules = [...new Set([...customRules, ...baseRules])];
 
-    return config;
-  `;
+    return config;`;
 }
 
-// 2. 生成搭配脚本的核心逻辑（用于配合 clash-config.yml YAML 覆写）
+// 2. 生成搭配脚本的核心逻辑（完美缩进排版）
 function generateFilterCompanionLogic() {
-  return `
-    if (!config || typeof config !== 'object') return config;
+  return `    if (!config || typeof config !== 'object') return config;
 
 ${getSharedFilterCode()}
 
@@ -213,8 +218,7 @@ ${getSharedFilterCode()}
       }
     });
 
-    return config;
-  `;
+    return config;`;
 }
 
 // 产物 1：FlClash 移动端专属全量脚本
