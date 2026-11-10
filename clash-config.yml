@@ -23,6 +23,8 @@ dns:
     - "+.pool.ntp.org"
     - "stun.*"
     - "*.market.xiaomi.com" # 米家与智能家居直连
+    - "*.delivery.mp.microsoft.com" # 微软/Xbox 下载 CDN 直连不走 Fake-IP
+    - "*.windowsupdate.com"
   nameserver:
     - https://223.5.5.5/dns-query
     - https://1.1.1.1/dns-query
@@ -234,6 +236,13 @@ rules:
   - DOMAIN,clash.razord.top,DIRECT
   - DOMAIN,yacd.haishan.me,DIRECT
 
+  # 微软与 Xbox 游戏大文件下载直连（跑满本地千兆宽带，不耗代理流量）
+  - DOMAIN-SUFFIX,delivery.mp.microsoft.com,DIRECT
+  - DOMAIN-SUFFIX,dl.delivery.mp.microsoft.com,DIRECT
+  - DOMAIN-SUFFIX,windowsupdate.com,DIRECT
+  - DOMAIN-SUFFIX,update.microsoft.com,DIRECT
+  - DOMAIN,download.microsoft.com,DIRECT
+
   # AI 专用规则必须放在通用 Google 规则之前（规则自上而下首次命中）
   # OpenAI / ChatGPT / Sora：后缀规则同时覆盖主域名和资源子域名
   - PROCESS-NAME,com.openai.chatgpt,AI
@@ -325,6 +334,12 @@ rules:
   - DOMAIN-KEYWORD,onedrive,PROXY
   - DOMAIN-SUFFIX,github.com,PROXY
   - DOMAIN-SUFFIX,netflix.com,PROXY
+
+  # Xbox 核心在线服务走代理（保证登录、商店与联机通畅）
+  - DOMAIN-SUFFIX,xbox.com,PROXY
+  - DOMAIN-SUFFIX,xboxlive.com,PROXY
+  - DOMAIN-SUFFIX,xboxservices.com,PROXY
+  - DOMAIN-SUFFIX,gamepass.com,PROXY
 
   # 规则集
   - RULE-SET,applications,DIRECT

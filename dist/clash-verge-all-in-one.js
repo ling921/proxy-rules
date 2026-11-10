@@ -2,7 +2,7 @@
  * ====================================================================
  * 💻 Clash Verge Rev 全量单脚本 (All-in-One)
  * 警告：此文件由 build.js 自动编译生成，请直接编辑 clash-config.yml！
- * 生成时间: 2026-11-05T06:34:43.192Z
+ * 生成时间: 2026-11-10T02:09:13.665Z
  * 说明：
  *   1. 本脚本内置所有配置与规则。如果全局覆写配置（YAML）留空，直接全量生效；
  *   2. 自动清除订阅自带的混乱策略组与规则，确保分流严格走 PROXY / AI / Google / Telegram！
@@ -111,7 +111,9 @@ function main(config, profileName) {
         "*.ntp.org.cn",
         "+.pool.ntp.org",
         "stun.*",
-        "*.market.xiaomi.com"
+        "*.market.xiaomi.com",
+        "*.delivery.mp.microsoft.com",
+        "*.windowsupdate.com"
       ],
       "nameserver": [
         "https://223.5.5.5/dns-query",
@@ -328,6 +330,11 @@ function main(config, profileName) {
       "GEOIP,LAN,DIRECT,no-resolve",
       "DOMAIN,clash.razord.top,DIRECT",
       "DOMAIN,yacd.haishan.me,DIRECT",
+      "DOMAIN-SUFFIX,delivery.mp.microsoft.com,DIRECT",
+      "DOMAIN-SUFFIX,dl.delivery.mp.microsoft.com,DIRECT",
+      "DOMAIN-SUFFIX,windowsupdate.com,DIRECT",
+      "DOMAIN-SUFFIX,update.microsoft.com,DIRECT",
+      "DOMAIN,download.microsoft.com,DIRECT",
       "PROCESS-NAME,com.openai.chatgpt,AI",
       "DOMAIN-SUFFIX,openai.com,AI",
       "DOMAIN-SUFFIX,chatgpt.com,AI",
@@ -407,6 +414,10 @@ function main(config, profileName) {
       "DOMAIN-KEYWORD,onedrive,PROXY",
       "DOMAIN-SUFFIX,github.com,PROXY",
       "DOMAIN-SUFFIX,netflix.com,PROXY",
+      "DOMAIN-SUFFIX,xbox.com,PROXY",
+      "DOMAIN-SUFFIX,xboxlive.com,PROXY",
+      "DOMAIN-SUFFIX,xboxservices.com,PROXY",
+      "DOMAIN-SUFFIX,gamepass.com,PROXY",
       "RULE-SET,applications,DIRECT",
       "RULE-SET,reject,REJECT",
       "RULE-SET,icloud,DIRECT",

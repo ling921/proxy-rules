@@ -2,7 +2,7 @@
  * ====================================================================
  * 📱 FlClash 移动端专属覆写脚本（全量独立）
  * 警告：此文件由 build.js 自动编译生成，请直接编辑 clash-config.yml！
- * 生成时间: 2026-11-05T06:34:43.192Z
+ * 生成时间: 2026-11-10T02:09:13.664Z
  * ====================================================================
  */
 
@@ -108,7 +108,9 @@ const main = (config) => {
         "*.ntp.org.cn",
         "+.pool.ntp.org",
         "stun.*",
-        "*.market.xiaomi.com"
+        "*.market.xiaomi.com",
+        "*.delivery.mp.microsoft.com",
+        "*.windowsupdate.com"
       ],
       "nameserver": [
         "https://223.5.5.5/dns-query",
@@ -325,6 +327,11 @@ const main = (config) => {
       "GEOIP,LAN,DIRECT,no-resolve",
       "DOMAIN,clash.razord.top,DIRECT",
       "DOMAIN,yacd.haishan.me,DIRECT",
+      "DOMAIN-SUFFIX,delivery.mp.microsoft.com,DIRECT",
+      "DOMAIN-SUFFIX,dl.delivery.mp.microsoft.com,DIRECT",
+      "DOMAIN-SUFFIX,windowsupdate.com,DIRECT",
+      "DOMAIN-SUFFIX,update.microsoft.com,DIRECT",
+      "DOMAIN,download.microsoft.com,DIRECT",
       "PROCESS-NAME,com.openai.chatgpt,AI",
       "DOMAIN-SUFFIX,openai.com,AI",
       "DOMAIN-SUFFIX,chatgpt.com,AI",
@@ -404,6 +411,10 @@ const main = (config) => {
       "DOMAIN-KEYWORD,onedrive,PROXY",
       "DOMAIN-SUFFIX,github.com,PROXY",
       "DOMAIN-SUFFIX,netflix.com,PROXY",
+      "DOMAIN-SUFFIX,xbox.com,PROXY",
+      "DOMAIN-SUFFIX,xboxlive.com,PROXY",
+      "DOMAIN-SUFFIX,xboxservices.com,PROXY",
+      "DOMAIN-SUFFIX,gamepass.com,PROXY",
       "RULE-SET,applications,DIRECT",
       "RULE-SET,reject,REJECT",
       "RULE-SET,icloud,DIRECT",
